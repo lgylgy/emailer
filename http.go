@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -14,8 +13,6 @@ func get(verb, host, path, api, key string,
 	decode func(io.Reader) error) error {
 
 	u := fmt.Sprintf("%s/%s", host, path)
-	log.Println(u)
-	log.Println(key)
 	rq, err := http.NewRequest(verb, u, nil)
 	if err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"io/ioutil"
 	"math/rand"
 	"time"
 )
@@ -15,7 +15,7 @@ import (
 const (
 	rapidAPI    = "privatix-temp-mail-v1.p.rapidapi.com"
 	rapidHost   = "https://privatix-temp-mail-v1.p.rapidapi.com/request"
-	charset     = "abcdefghijklmnopqrstuvwxyz" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789"
+	charset     = "abcdefghijklmnopqrstuvwxyz"
 	emailLength = 8
 )
 
@@ -23,6 +23,12 @@ type Client struct {
 	key   string
 	email string
 	hash  string
+}
+
+type Message struct {
+	From    string `json:"mail_from"`
+	Subject string `json:"mail_subject"`
+	Text    string `json:"mail_text"`
 }
 
 func NewClient(key string) *Client {
@@ -68,7 +74,7 @@ func (c *Client) CreateAddress(domains []string) (string, error) {
 	user := createRamdonString(emailLength)
 	hash := generateMd5Hash(user + domain)
 
-	cmd := fmt.Sprintf("mail/id/%s", c.hash)
+	cmd := fmt.Sprintf("mail/id/%s", hash)
 	err := get("GET", rapidHost, cmd, rapidAPI, c.key,
 		func(r io.Reader) error {
 			return json.NewDecoder(r).Decode(&domains)
@@ -78,4 +84,33 @@ func (c *Client) CreateAddress(domains []string) (string, error) {
 		c.hash = hash
 	}
 	return c.email, nil
+}
+
+func (c *Client) FetchEmail() (string, []*Message, error) {
+	if c.hash == "" {
+		return "", nil, errors.New("no email defined")
+	}
+
+	state := ""
+	emails := []*Message{}
+	cmd := fmt.Sprintf("mail/id/%s/", c.hash)
+	err := get("GET", rapidHost, cmd, rapidAPI, c.key,
+		func(r io.Reader) error {
+			data, err := ioutil.ReadAll(r)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal([]byte(data), &emails)
+			if err != nil {
+				result := map[string]string{}
+				err = json.Unmarshal([]byte(data), &result)
+				if err != nil {
+					return err
+				}
+				state = result["error"]
+				return nil
+			}
+			return nil
+		})
+	return state, emails, err
 }
