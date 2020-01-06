@@ -27,4 +27,11 @@ func main() {
 	for _, v := range domains {
 		log.Println("-> ", v)
 	}
+
+	log.Println("Generate random address:")
+	email, err := client.CreateAddress(domains)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("-> ", email)
 }
