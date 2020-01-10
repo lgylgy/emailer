@@ -46,7 +46,9 @@ func main() {
 			log.Fatal(err)
 		}
 		if len(emails) != 0 {
-			log.Printf("*** %d emails received\n", len(emails))
+			for _, v := range emails {
+				log.Println(v.ToString())
+			}
 		} else {
 			log.Println("-> ", msg)
 		}

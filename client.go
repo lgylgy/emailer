@@ -31,6 +31,10 @@ type Message struct {
 	Text    string `json:"mail_text"`
 }
 
+func (m *Message) ToString() string {
+	return "\n--- " + m.Subject + " ---\n" + m.Text
+}
+
 func NewClient(key string) *Client {
 	return &Client{
 		key: key,
