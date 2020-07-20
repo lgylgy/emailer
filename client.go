@@ -69,7 +69,10 @@ func createRamdonString(length int) string {
 
 func generateMd5Hash(text string) string {
 	hasher := md5.New()
-	hasher.Write([]byte(text))
+	_, err := hasher.Write([]byte(text))
+	if err != nil {
+		return ""
+	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
